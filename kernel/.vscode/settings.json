@@ -1,0 +1,9 @@
+{
+    "files.associations": {
+        "string.h": "c",
+        "sys_kern.h": "c",
+        "stdint.h": "c",
+        "system.h": "c",
+        "wstring.h": "c"
+    }
+}

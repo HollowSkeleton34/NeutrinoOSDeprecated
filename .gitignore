@@ -1,0 +1,5 @@
+# Ignore generated binary file
+os.img
+os
+os.elf
+*.o
