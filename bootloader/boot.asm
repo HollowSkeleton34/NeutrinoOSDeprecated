@@ -2,6 +2,8 @@ section .boot
 bits 16
 global boot
 boot:
+
+
 	mov ax, 0x2401
 	int 0x15
 
@@ -11,7 +13,7 @@ boot:
 	mov [disk],dl
 
 	mov ah, 0x2    ;read sectors
-	mov al, 16      ;sectors to read
+	mov al, 25      ;sectors to read
 	mov ch, 0      ;cylinder idx
 	mov dh, 0      ;head idx
 	mov cl, 2      ;sector idx

@@ -3,6 +3,7 @@
 #include <drivers/keyboard.h>
 #include <drivers/timer.h>
 #include <system/sys_kern.h>
+#include <system/memory.h>
 
 #define KERNEL_RELEASE 0
 #define KERNEL_VERSION 0
@@ -15,6 +16,8 @@ int main(){
     irq_install();
 	//timer_install();
     keyboard_install();
+
+    memory_init();
 	
 	printf("Running TMOS Version %d.%d.%d!\n", KERNEL_RELEASE, KERNEL_VERSION, KERNEL_SNAPSHOT);
     __asm__ __volatile__ ("sti");

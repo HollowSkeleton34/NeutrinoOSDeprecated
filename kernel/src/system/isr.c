@@ -142,4 +142,5 @@ void fault_handler(struct regs *r){
 
     const char *message = exception_messages[r->int_no];
     puts(message);
+    putc('\n');
 }
