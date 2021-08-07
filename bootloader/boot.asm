@@ -4,7 +4,7 @@ global __default_drive
 __default_drive: db 0
 
 global __num_sectors
-__num_sectors: dd 27
+__num_sectors: dd 28
 
 bits 16
 global boot
@@ -56,7 +56,7 @@ boot:
 	mov [ebx+8], ax
 	
 	mov ax, cx
-	shr ax, 6
+	shl ax, 6
 	and ax, 0x3FF
 	mov [ebx+4], ax
 
