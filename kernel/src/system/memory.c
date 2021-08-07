@@ -15,24 +15,17 @@ typedef union location
     uint64_t Value;
     struct
     {
-        uint32_t High;
         uint32_t Low;
+        uint32_t High;
     };
 } location;
 
-typedef struct address_descriptor
+typedef struct e820_desc
 {
     location BaseAddr;
     location Length;
     uint32_t Type;
-    uint32_t ExtendedAttributes;
-} address_descriptor;
-
-typedef struct e820_table
-{
-    uint32_t Count;
-    address_descriptor* Table;
-} e820_table;
+} e820_desc;
 
 typedef struct alloc
 {
@@ -48,8 +41,9 @@ typedef struct alloc
 //
 // --------------------------------------------------------------
 
-static address_descriptor _dt_table[16];
-static e820_table _e820_table;
+extern uint32_t     __e820_size;
+extern e820_desc    __e820_data;
+static e820_desc*   __e820_map;
 
 // allocation map
 static void* _memoryStart;
@@ -64,8 +58,7 @@ static char* reserved = "<reserved>";
 //
 // --------------------------------------------------------------
 
-static e820_table* get_e820();
-static void _print_descriptor(const address_descriptor* descriptor);
+static void _print_descriptor(const e820_desc* descriptor);
 
 // splits a into two allocs, one of size and the other with the memory leftover
 static uint32_t split(alloc* a, uint32_t size);
@@ -79,7 +72,7 @@ static uint32_t merge(alloc* first, alloc* second);
 //
 // --------------------------------------------------------------
 
-static inline bool _memoryIsFree(const address_descriptor* memory)
+static inline bool _memoryIsFree(const e820_desc* memory)
 {
     return memory->Type == 1;
 }
@@ -92,23 +85,15 @@ static inline bool _memoryIsFree(const address_descriptor* memory)
 
 void memory_init()
 {
-    e820_table* table = get_e820();
+    __e820_map = &__e820_data;
+    printf("Loaded %u E820 Regions!\n", __e820_size);
 
-    for(int i = 0; i < table->Count; i ++)
+    for(uint32_t i = 0; i < __e820_size; i ++)
     {
-        printf("Region %d | ", i);
-        _print_descriptor(&table->Table[i]);
-        putc('\n');
+        e820_desc* region = __e820_map + i;
+
+        _print_descriptor(region);
     }
-
-    _memoryStart = table->Table[3].BaseAddr.Value;
-    _currentAlloc = (alloc*)_memoryStart;
-    _currentAlloc->NextAlloc = NULL;
-    _currentAlloc->PreviousAlloc = NULL;
-    _currentAlloc->Reserved = false;
-    _currentAlloc->Size = table->Table[3].Length.Value - sizeof(alloc);
-
-    printf("%u bytes of memory mapped for virtual memory!", _currentAlloc->Size);
 
     return;
 }
@@ -119,52 +104,10 @@ void memory_init()
 //
 // --------------------------------------------------------------
 
-static e820_table* get_e820()
-{
-    // Bios
-    _dt_table[0].BaseAddr.Value = 0x00;
-    _dt_table[0].Length.Value = 0x0000000000100000;
-    _dt_table[0].Type = 2;
-    _dt_table[0].ExtendedAttributes = 0;
-    
-    // RAM Area 1
-    _dt_table[1].BaseAddr.Value = 0x0000000000100000;
-    _dt_table[1].Length.Value = 0x0000000000E00000;
-    _dt_table[1].Type = 1;
-    _dt_table[1].ExtendedAttributes = 0;
-    
-    // Mapped hardware
-    _dt_table[2].BaseAddr.Value = 0x0000000000F00000;
-    _dt_table[2].Length.Value = 0x0000000000100000;
-    _dt_table[2].Type = 2;
-    _dt_table[2].ExtendedAttributes = 0;
-    
-    // RAM Area 2
-    _dt_table[3].BaseAddr.Value = 0x01000000;
-    _dt_table[3].Length.Value = 0x00000000BF000000;
-    _dt_table[3].Type = 1;
-    _dt_table[3].ExtendedAttributes = 0;
-
-    // Mapped devices
-    _dt_table[4].BaseAddr.Value = 0xC0000000;
-    _dt_table[4].Length.Value =  0x0000000040000000;
-    _dt_table[4].Type = 2;
-    _dt_table[4].ExtendedAttributes = 0;
-
-    // there usually is an entry for extended memory (past 4gb)
-    // but we're in protected mode and we have no idea how much memory
-    // the system has
-
-    _e820_table.Count = 5;
-    _e820_table.Table = _dt_table;
-
-    return &_e820_table;
-}
-
-static void _print_descriptor(const address_descriptor* descriptor)
+static void _print_descriptor(const e820_desc* descriptor)
 {
     printf(
-        "Base: 0x%x%08x, Length: 0x%x%08x, Type: %d %s",
+        "Base: 0x%x%08x, Length: 0x%x%08x, Type: %d %s\n",
         descriptor->BaseAddr.High, descriptor->BaseAddr.Low,
         descriptor->Length.High, descriptor->Length.Low,
         descriptor->Type, (descriptor->Type == 1) ? available : reserved);
