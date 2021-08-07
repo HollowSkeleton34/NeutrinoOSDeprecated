@@ -231,10 +231,10 @@ void* malloc(uint64_t size)
 }
 
 //GOTS A FEW QUESTIONS
-void free(alloc* block)
-{
-    alloc* temp;
+//void free(alloc* block)
+//{
+    //alloc* temp;
     
-    while(1)
-    {
-        if (block->
+    //while(1)
+    //{
+        //if (block->
