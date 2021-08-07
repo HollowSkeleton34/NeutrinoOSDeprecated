@@ -3,6 +3,9 @@ section .boot
 global __default_drive
 __default_drive: db 0
 
+global __num_sectors
+__num_sectors: dd 27
+
 bits 16
 global boot
 boot:
@@ -16,7 +19,7 @@ boot:
 	mov [__default_drive],dl
 
 	mov ah, 0x2    ;read sectors
-	mov al, 25      ;sectors to read
+	mov al, [__num_sectors]      ;sectors to read
 	mov ch, 0      ;cylinder idx
 	mov dh, 0      ;head idx
 	mov cl, 2      ;sector idx

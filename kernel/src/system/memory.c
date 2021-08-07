@@ -87,13 +87,31 @@ void memory_init()
 {
     __e820_map = &__e820_data;
     printf("Loaded %u E820 Regions!\n", __e820_size);
+    
+    // currently using the biggest free area available
+    e820_desc* largest_region = 0;
+    uint64_t largest_size = 0;
 
     for(uint32_t i = 0; i < __e820_size; i ++)
     {
         e820_desc* region = __e820_map + i;
 
+        if(region->Length.Value > largest_size)
+        {
+            largest_region = region;
+            largest_size = region->Length.Value;
+        }
+
         _print_descriptor(region);
     }
+
+    alloc* _currentAlloc = largest_region->BaseAddr.Value;
+    _currentAlloc->Size = largest_region->Length.Value - sizeof(alloc);
+    _currentAlloc->Reserved = false;
+    _currentAlloc->PreviousAlloc = NULL;
+    _currentAlloc->NextAlloc = NULL;
+
+    printf("%u Bytes of memory mapped for allocation!\n", _currentAlloc->Size);
 
     return;
 }
@@ -157,7 +175,7 @@ void* malloc(uint64_t size)
     
     if (result == 1 || result == 2)
     {
-        return;
+        return 0;
     }
     else
     {
@@ -167,10 +185,12 @@ void* malloc(uint64_t size)
         a->Reserved = true;
         a->Size = size;
         
-        &a = &_currentAddress + sizeof(alloc) + _currentAlloc->Size;
+        //&a = &_currentAddress + sizeof(alloc) + _currentAlloc->Size;
         _currentAlloc->PreviousAlloc = a;
         _currentAlloc = a;
     }
+
+    return 0;
 }
 
 //GOTS A FEW QUESTIONS
