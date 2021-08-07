@@ -203,3 +203,38 @@ static uint32_t merge(alloc* first, alloc* second)
 
     return 0;
 }
+
+//MALLOC FUNCTION FOR ALLOCATING MEMORY BASED UPON THE SIZE PROVIDED
+//NOT TESTED YET
+//RETURNS IMMEDIATELY IF SPLIT FUNCITON DOES NOT RETURN A 0
+
+void* malloc(uint64_t size)
+{
+    uint32_t result = split(currentAlloc, size);
+    
+    if (result == 1 || result == 2)
+    {
+        return;
+    }
+    else
+    {
+        alloc* a;
+        a->PreviousAlloc = _currentAlloc;
+        a->NextAlloc = 0;
+        a->Reserved = true;
+        a->Size = size;
+        
+        &a = &_currentAddress + sizeof(alloc) + _currentAlloc->Size;
+        _currentAlloc->PreviousAlloc = a;
+        _currentAlloc = a;
+    }
+}
+
+//GOTS A FEW QUESTIONS
+void free(alloc* block)
+{
+    alloc* temp;
+    
+    while(1)
+    {
+        if (block->
