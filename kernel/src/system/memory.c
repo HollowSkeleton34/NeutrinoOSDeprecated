@@ -153,7 +153,7 @@ static uint32_t merge(alloc* first, alloc* second)
 
 void* malloc(uint64_t size)
 {
-    uint32_t result = split(currentAlloc, size);
+    uint32_t result = split(_currentAlloc, size);
     
     if (result == 1 || result == 2)
     {
