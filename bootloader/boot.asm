@@ -4,7 +4,7 @@ global __default_drive
 __default_drive: db 0
 
 global __num_sectors
-__num_sectors: dd 28
+__num_sectors: dd 29
 
 bits 16
 global boot
@@ -49,19 +49,22 @@ boot:
 
 	mov ebx, [__temppointer]
 
-	mov [ebx], dh
-
-	mov ax, cx
-	and ax, 0x3F
-	mov [ebx+8], ax
+	movzx eax, dh
+	add eax, 1
+	mov [ebx], eax
 	
-	mov ax, cx
-	shl ax, 6
-	and ax, 0x3FF
-	mov [ebx+4], ax
+	movzx eax, cx
+	and eax, 0x3F
+	mov [ebx+8], eax
 
+	movzx eax, cx
+	shr eax, 6
+	and eax, 0x3FF
+	add eax, 1
+	mov [ebx+4], eax
+	
 	inc dl
-	add ebx, 12
+	add ebx, 3
 
 	mov [__temppointer], ebx
 	jmp .drive_loop
