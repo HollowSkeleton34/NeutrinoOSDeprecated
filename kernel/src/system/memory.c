@@ -264,29 +264,45 @@ void* malloc(uint64_t size)
     
     if (result == 1 || result == 2)
     {
-        return 0;
+        while (_currentAlloc->NextAlloc->Reserved == true && _currentAlloc->NextAlloc != NULL)
+        {
+            _currentAlloc = _currentAlloc->NextAlloc;
+        }
+
+        return malloc(size);
     }
     else
     {
-        alloc* a;
-        a->PreviousAlloc = _currentAlloc;
-        a->NextAlloc = 0;
-        a->Reserved = true;
-        a->Size = size;
-        
-        //&a = &_currentAddress + sizeof(alloc) + _currentAlloc->Size;
-        _currentAlloc->PreviousAlloc = a;
-        _currentAlloc = a;
+        _currentAlloc = _currentAlloc->NextAlloc;
+        return (void*)_currentAlloc->PreviousAlloc + sizeof(alloc);
     }
-
-    return 0;
 }
 
-//GOTS A FEW QUESTIONS
-//void free(alloc* block)
-//{
-    //alloc* temp;
+void free(void* pointer)
+{
+    alloc* block = pointer - sizeof(alloc); 
+    block->Reserved = false;
     
-    //while(1)
-    //{
-        //if (block->
+    uint32_t result = merge(block, block->NextAlloc);
+
+    if (result == 0)
+    {
+        return;
+    }
+    else
+    {
+        printf("Could not merge adjacent memory block next to alloc at location: %X\n", (uint32_t)&block);
+    }
+} 
+
+
+
+
+
+
+
+
+
+
+
+
