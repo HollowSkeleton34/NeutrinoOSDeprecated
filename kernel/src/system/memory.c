@@ -235,6 +235,7 @@ static uint32_t split(alloc* a, uint32_t size)
     a->NextAlloc->Reserved = false;
     a->NextAlloc->Size = split_size;
     a->Reserved = true;
+    a->Size = size;
 
     return 0;
 }
@@ -273,11 +274,30 @@ void* malloc(uint64_t size)
     }
     else
     {
+<<<<<<< HEAD
         _currentAlloc = _currentAlloc->NextAlloc;
         return (void*)_currentAlloc->PreviousAlloc + sizeof(alloc);
+=======
+        /*
+        alloc* a;
+        a->PreviousAlloc = _currentAlloc;
+        a->NextAlloc = 0;
+        a->Reserved = true;
+        a->Size = size;
+        
+        //&a = &_currentAddress + sizeof(alloc) + _currentAlloc->Size;
+        _currentAlloc->PreviousAlloc = a;
+        _currentAlloc = a;
+        */
+
+       _currentAlloc = _currentAlloc->NextAlloc;
+
+        return ((void*)_currentAlloc->PreviousAlloc) + sizeof(alloc);
+>>>>>>> 9c3ceb02a54e5b1828e471643cd23e7a5b63949d
     }
 }
 
+<<<<<<< HEAD
 void free(void* pointer)
 {
     alloc* block = pointer - sizeof(alloc); 
@@ -306,3 +326,12 @@ void free(void* pointer)
 
 
 
+=======
+//GOTS A FEW QUESTIONS
+void free(void* pointer)
+{
+    alloc* block = pointer - sizeof(alloc);
+
+    block->Reserved = false;
+}
+>>>>>>> 9c3ceb02a54e5b1828e471643cd23e7a5b63949d
