@@ -31,7 +31,31 @@ void load_drives()
 }
 
 
-void read_sector(uint8_t drive, uint8_t head, uint8_t track, uint32_t sector)
+void read_sectors(void* buffer, uint8_t drive, uint64_t lba, uint16_t sectors)
 {
-    outportb(0x1f6, 0x80 + drive); // set the drive
+    outportb(0x1f2, (uint8_t)(sectors >> 8));
+    outportb(0x1f3, (uint8_t)(lba >> 24));
+    outportb(0x1f4, (uint8_t)(lba >> 32));
+    outportb(0x1f5, (uint8_t)(lba >> 40));
+    outportb(0x1f2, (uint8_t)(sectors));
+    outportb(0x1f3, (uint8_t)(lba));
+    outportb(0x1f4, (uint8_t)(lba >> 8));
+    outportb(0x1f5, (uint8_t)(lba >> 16));
+    outportb(0x1f6, drive);
+    outportb(0x1f7, 0x24);
+
+    while(true)
+    {
+        uint8_t value = inportb(0x1f7);
+
+        // err or df set
+        if(value & 0x21) return;
+
+
+        if(value & 0x80 && value & 0x08)
+        {
+            break;
+        }
+    }
+    
 }
