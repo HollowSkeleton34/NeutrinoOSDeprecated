@@ -1,15 +1,14 @@
-
 #include <system/ports.h>
+#include <system/sys_kern.h>
+
+// ---------------------------------------------------
+//
+//  port io - byte (8 bits)
+//
+// ---------------------------------------------------
 
 uint8_t inportb(uint16_t port)
 {
-    // We're using inline assembly to read from the port
-
-    // "=a" (result) means to put value of rax in result
-    // "d" (port) means put value of port in dx
-
-    // asm instructions use the form "command" : "output" : "input"
-    // Use the "in" assembly command to read from a port
     uint8_t result;
     __asm__ volatile ("in %%dx, %%al" : "=a" (result) : "d" (port));
     return result;
@@ -18,6 +17,43 @@ uint8_t inportb(uint16_t port)
 
 void outportb(uint16_t port, uint8_t data)
 {
-    // Use the "out" command to write to a port
     __asm__ volatile ("out %%al, %%dx" : : "a" (data), "d" (port));
+}
+
+// ---------------------------------------------------
+//
+//  port io - word (16 bits)
+//
+// ---------------------------------------------------
+
+uint16_t inportw(uint16_t port)
+{
+    uint8_t result;
+    __asm__ volatile ("in %%dx, %%ax" : "=a" (result) : "d" (port));
+    return result;
+}
+
+
+void outportw(uint16_t port, uint16_t data)
+{
+    __asm__ volatile ("out %%ax, %%dx" : : "a" (data), "d" (port));
+}
+
+// ---------------------------------------------------
+//
+//  port io - dword (32 bits)
+//
+// ---------------------------------------------------
+
+uint32_t inportd(uint16_t port)
+{
+    uint8_t result;
+    __asm__ volatile ("in %%dx, %%eax" : "=a" (result) : "d" (port));
+    return result;
+}
+
+
+void outportd(uint16_t port, uint32_t data)
+{
+    __asm__ volatile ("out %%eax, %%dx" : : "a" (data), "d" (port));
 }

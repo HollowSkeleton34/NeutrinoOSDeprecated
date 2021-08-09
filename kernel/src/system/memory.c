@@ -90,8 +90,6 @@ void memory_init()
     __e820_map = &__e820_data;
     _reserve_area(0x7C00, 0xB8400);
 
-    printf("Loaded %u E820 Regions!\n", __e820_size);
-
     _currentAlloc = NULL;
     alloc* first = NULL;
 
@@ -121,6 +119,7 @@ void memory_init()
 
         _currentAlloc = first;
 
+        printf("Region %u: ", i);
         _print_descriptor(region);
     }
 
