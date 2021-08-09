@@ -1,6 +1,8 @@
 #ifndef __SYSTEM_H
 #define __SYSTEM_H
 
+#include <stdint.h>
+
 /* This defines what the stack looks like after an ISR was running */
 struct regs
 {
@@ -21,5 +23,12 @@ extern void isrs_install();
 extern void irq_install_handler(int irq, void (*handler)(struct regs *r));
 extern void irq_uninstall_handler(int irq);
 extern void irq_install();
+void irq_send_eoi(uint8_t irq);
+
+#define PUSHA() asm volatile("add $0x1c, %esp"); \
+		        asm volatile("pusha");
+
+#define POPA()  asm volatile("popa"); \
+	            asm volatile("iret");
 
 #endif
