@@ -1,4 +1,4 @@
-#include <algorithms.h>
+#include <algorithms/algorithms.h>
 
 unsigned int task_manager_binary_search(task_manager* manager, unsigned int start, unsigned int end, unsigned int pid)
 {

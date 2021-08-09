@@ -107,7 +107,7 @@ void memory_init()
             }
             else
             {
-                _currentAlloc->NextAlloc = region->BaseAddr.Value;
+               _currentAlloc->NextAlloc = region->BaseAddr.Value;
                 _currentAlloc->PreviousAlloc = _currentAlloc;
                 _currentAlloc = _currentAlloc->NextAlloc;
             }

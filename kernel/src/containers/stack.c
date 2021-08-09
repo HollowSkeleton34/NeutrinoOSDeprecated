@@ -1,4 +1,4 @@
-#include <stack.h>
+#include <containers/stack.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <system/memory.h>
@@ -9,31 +9,31 @@ stack* stack_create(unsigned int size)
 
     s->top = 0;
     s->size = size;
-    s->arr = (unsigned int*)malloc(stack->size * sizeof(stack);
+    s->arr = (unsigned int*)malloc(s->size * sizeof(stack));
     return s;
 }
 
 bool inline stack_full(stack* s)
 {
-    return stack->top == stack->size - 1;
+    return s->top == s->size - 1;
 }
 
 bool inline stack_empty(stack* s)
 {
-    return stack->top == 0;
+    return s->top == 0;
 }
 
 void stack_push(stack* s, int val)
 {
     s->top++;
 
-    if (stack_full())
+    if (stack_full(s))
     {
 	printf("Could not push value to stack.\n");
     }
     else
     {
-        stack->arr[++stack->top] = val;
+        s->arr[++s->top] = val;
     }
 }
 
@@ -41,8 +41,8 @@ void stack_pop(stack* s)
 {
     if (stack_empty(s))
     {
-	printf("Stack is empty\n");
-    {
+	    printf("Stack is empty\n");
+    }
     else
     {
         s->top--;

@@ -1,15 +1,16 @@
 #include <system/multi-threading.h>
+#include <system/memory.h>
 #include <stdio.h>
 #include <stdbool.h>
 #include <stdarg.h>
 #include <ctype.h>
 #include <stdint.h>
-#include <algorithms.h>
-#include <sys_kern.h>
+#include <algorithms/algorithms.h>
+#include <system/sys_kern.h>
 #include <containers/stack.h>
 
 //CREATES A STACK SPECIFICALLY FOR A TASK
-stack* inline create_task_stack()
+inline stack* create_task_stack()
 {
     return stack_create(4096);
 }
@@ -48,18 +49,18 @@ void add_task_to_manager(task_manager* manager, task* t)
     }
     else
     {
-        int i;
+        unsigned int i;
     
-        while (manager[i] != 0)
+        while (manager->tasks[i] != 0)
         {
             i++;
         }
     
-        manager[i] = t;
+        manager->tasks[i] = t;
         manager->num_tasks++;
         manager->current_task = manager->tasks[i]->pid;
         t->state = READY;
-        printf("Task for instruction at location %p successfully created\n", t.curr_ins);
+        printf("Task for instruction at location %p successfully created\n", t->curr_ins);
     }
 }
 
@@ -67,9 +68,9 @@ void add_task_to_manager(task_manager* manager, task* t)
 //USES BINARY SEARCH TO FIND TASK
 void remove_task_from_manager(task_manager* manager, unsigned int pid)
 {
-    unsigned int rm = task_mamager_binary_search(manager->tasks, 0, manager->num_tasks, pid);
+    unsigned int rm = task_manager_binary_search(manager, 0, manager->num_tasks, pid);
     
-    if (rm == 0xFF);
+    if (rm == 0xFF)
     {
         printf("Task with PID %u could not be found in task manager\n", pid);
     }
@@ -90,7 +91,7 @@ void clear_manager(task_manager* manager)
     {   
         for (int i = 0; i < 256; ++i)
         {
-            manager[i] = NULL;
+            manager->tasks[i] = NULL;
         }
 
         manager->num_tasks = 0;
