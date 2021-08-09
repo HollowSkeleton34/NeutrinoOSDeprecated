@@ -8,7 +8,7 @@ typedef struct stack
     int* arr;
 } stack __attribute__((packed));
 
-stack* create_stack(unsigned int size);
+stack* stack_create(unsigned int size);
 bool inline stack_full(stack* s);
 bool inline stack_empty(stack* s);
 void stack_push(stack* s, int val);

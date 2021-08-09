@@ -3,7 +3,7 @@
 #include <stdio.h>
 #include <system/memory.h>
 
-stack* create_stack(unsigned int size)
+stack* stack_create(unsigned int size)
 {
     stack* s;
 
