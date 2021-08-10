@@ -4,7 +4,7 @@ global __default_drive
 __default_drive: db 0
 
 global __num_sectors
-__num_sectors: dd 31
+__num_sectors: dd 36
 
 bits 16
 global boot

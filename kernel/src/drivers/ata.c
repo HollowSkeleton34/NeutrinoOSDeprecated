@@ -6,6 +6,7 @@
 #include <system/sys_kern.h>
 #include <system/memory.h>
 #include <system/device.h>
+#include <string.h>
 
 // ---------------------------------------------------------------------
 //
@@ -136,7 +137,10 @@ static void _ata_select_drive(uint8_t bus, uint8_t i);
 static bool _ata_identify(uint8_t bus, uint8_t drive);
 static void _ata_probe();
 static void _ata_read(uint8_t *buf, uint32_t lba, uint32_t numsects, device_t *dev);
+static void _ata_write(uint8_t *buf, uint32_t lba, uint32_t numsects, device_t *dev);
 static uint8_t _ata_read_one(uint8_t *buf, uint32_t lba, device_t *dev);
+static uint8_t _ata_write_one(uint8_t *buf, uint32_t lba, device_t *dev);
+static void _ata_flush(uint16_t io);
 static void _ata_poll(uint16_t io);
 static void _ata_delay400ns(uint16_t io);
 
@@ -214,7 +218,7 @@ _status_read:
 		status = inportb(io + ATA_REG_STATUS);
 
 		if(status & ATA_SR_ERR)
-			return 0;
+			return false;
 
 		while(!(status & ATA_SR_DRQ)) goto _status_read;
 		
@@ -222,7 +226,11 @@ _status_read:
 		{
 			*(uint16_t *)(ata_buffer + i*2) = inportw(io + ATA_REG_DATA);
 		}
+
+		return true;
 	}
+
+	return false;
 }
 
 static void _ata_probe()
@@ -230,6 +238,15 @@ static void _ata_probe()
 	if(_ata_identify(ATA_PRIMARY, ATA_MASTER))
 	{
 		_ata_pm = true;
+
+		device_t drive;
+		drive.dtype = DEVICE_DRIVE_BLOCK;
+		memcpy(drive.name, "ATA Drive Primary Master\0", strlen("ATA Drive Primary Master\0"));
+		drive.read = _ata_read;
+		drive.write = _ata_write;
+		drive.uuid = 32;
+		device_add(&drive);
+
 		printf("Located Primary Master drive!\n");
 	}
 }
@@ -238,7 +255,16 @@ static void _ata_read(uint8_t *buf, uint32_t lba, uint32_t numsects, device_t *d
 {
 	for(int i = 0; i < numsects; i++)
 	{
-		ata_read_one(buf, lba + i, dev);
+		_ata_read_one(buf, lba + i, dev);
+		buf += 512;
+	}
+}
+
+static void _ata_write(uint8_t *buf, uint32_t lba, uint32_t numsects, device_t *dev)
+{
+	for(int i = 0; i < numsects; i++)
+	{
+		_ata_write_one(buf, lba + i, dev);
 		buf += 512;
 	}
 }
@@ -308,10 +334,14 @@ static uint8_t _ata_read_one(uint8_t *buf, uint32_t lba, device_t *dev)
 	outportb(io + ATA_REG_HDDEVSEL, (cmd | (uint8_t)((lba >> 24 & 0x0F))));
 	outportb(io + 1, 0x00);
 	outportb(io + ATA_REG_SECCOUNT0, 1);
+	outportb(io + ATA_REG_LBA0, (uint8_t)((lba) >> 24));
+	outportb(io + ATA_REG_LBA1, (uint8_t)((lba) >> 32));
+	outportb(io + ATA_REG_LBA2, (uint8_t)((lba) >> 40));
+	outportb(io + ATA_REG_SECCOUNT0, 0);
 	outportb(io + ATA_REG_LBA0, (uint8_t)((lba)));
 	outportb(io + ATA_REG_LBA1, (uint8_t)((lba) >> 8));
 	outportb(io + ATA_REG_LBA2, (uint8_t)((lba) >> 16));
-	outportb(io + ATA_REG_COMMAND, ATA_CMD_READ_PIO);
+	outportb(io + ATA_REG_COMMAND, ATA_CMD_READ_PIO_EXT);
 
 	// poll the drive to get the status
 	// locks up the os if it fails
@@ -325,4 +355,70 @@ static uint8_t _ata_read_one(uint8_t *buf, uint32_t lba, device_t *dev)
 	}
 	_ata_delay400ns(io);
 	return 1;
+}
+
+static uint8_t _ata_write_one(uint8_t *buf, uint32_t lba, device_t *dev)
+{
+	// check device we need to output to
+	uint8_t drive = ((ata_drive*)(dev->_priv))->drive;
+	uint16_t io = 0;
+	switch(drive)
+	{
+		case (ATA_PRIMARY << 1 | ATA_MASTER):
+			io = ATA_PRIMARY_IO;
+			drive = ATA_MASTER;
+			break;
+		case (ATA_PRIMARY << 1 | ATA_SLAVE):
+			io = ATA_PRIMARY_IO;
+			drive = ATA_SLAVE;
+			break;
+		case (ATA_SECONDARY << 1 | ATA_MASTER):
+			io = ATA_SECONDARY_IO;
+			drive = ATA_MASTER;
+			break;
+		case (ATA_SECONDARY << 1 | ATA_SLAVE):
+			io = ATA_SECONDARY_IO;
+			drive = ATA_SLAVE;
+			break;
+		default:
+			printf("FATAL: unknown drive!\n");
+			return 0;
+	}
+
+	// get the cmd and slave bit
+	uint8_t cmd = (drive==ATA_MASTER?0xE0:0xF0);
+	uint8_t slavebit = (drive == ATA_MASTER?0x00:0x01);
+
+	// pass the drive information and read params to the ata regs
+	outportb(io + ATA_REG_HDDEVSEL, (cmd | (uint8_t)((lba >> 24 & 0x0F))));
+	outportb(io + 1, 0x00);
+	outportb(io + ATA_REG_SECCOUNT0, 0);
+	outportb(io + ATA_REG_LBA0, (uint8_t)((lba) >> 24));
+	outportb(io + ATA_REG_LBA1, (uint8_t)((lba) >> 32));
+	outportb(io + ATA_REG_LBA2, (uint8_t)((lba) >> 40));
+	outportb(io + ATA_REG_SECCOUNT0, 1);
+	outportb(io + ATA_REG_LBA0, (uint8_t)((lba)));
+	outportb(io + ATA_REG_LBA1, (uint8_t)((lba) >> 8));
+	outportb(io + ATA_REG_LBA2, (uint8_t)((lba) >> 16));
+	outportb(io + ATA_REG_COMMAND, ATA_CMD_WRITE_PIO_EXT);
+
+	// poll the drive to get the status
+	// locks up the os if it fails
+	_ata_poll(io);
+
+	// read in one sector
+	for(int i = 0; i < 256; i++)
+	{
+		outportw(io + ATA_REG_DATA, *(uint16_t *)(buf + i * 2));
+	}
+
+	_ata_delay400ns(io);
+	_ata_flush(io);
+
+	return 1;
+}
+
+static void _ata_flush(uint16_t io)
+{
+	outportb(io + ATA_REG_COMMAND, ATA_CMD_CACHE_FLUSH_EXT);
 }
