@@ -9,13 +9,24 @@
 #include <system/sys_kern.h>
 #include <containers/stack.h>
 
+struct regs* esp;
+
+task_manager* create_task_manager()
+{
+    task_manager* tm;
+
+    tm->num_tasks = 0;
+    tm->current_task = 0xFF;
+    return tm;
+}
+
 //CREATES A STACK SPECIFICALLY FOR A TASK
 inline stack* create_task_stack()
 {
     return stack_create(4096);
 }
 
-task* task_create(unsigned int* ins, unsigned int pid, unsigned char priority)
+task* task_create(unsigned int* ins, unsigned int pid, unsigned char priority, void function_ptr())
 {
     task* t;
 
@@ -25,6 +36,17 @@ task* task_create(unsigned int* ins, unsigned int pid, unsigned char priority)
     t->state = NEW;
     t->task_stack = create_task_stack();
     
+    //t->(&stack_regs) = (unsigned int)(t->task_stack + 4096 - sizeof(unsigned int));
+    
+    t->stack_regs->eax = 0;
+    t->stack_regs->ebx = 0;
+    t->stack_regs->ecx = 0;
+    t->stack_regs->edx = 0;
+    t->stack_regs->esi = 0;
+    t->stack_regs->edi = 0;
+    t->stack_regs->eip = (unsigned int)function_ptr;
+    t->stack_regs->cs = 0x08;
+    t->stack_regs->eflags = 0x202;
     return t;
 }
 
@@ -80,6 +102,27 @@ void remove_task_from_manager(task_manager* manager, unsigned int pid)
     }
 }
 
+//GETS TASK WITH SPECIFIED PID
+task* get_task(task_manager* manager, unsigned int pid)
+{
+    unsigned int result = task_manager_binary_search(manager, 0, manager->num_tasks, pid);
+
+    if (result == 0xFF)
+    {
+        return NULL;
+    }
+    else
+    {
+        return manager->tasks[result];
+    }
+}
+
+//GETS PID OF TASK AT SPECIFIED LOCATION IN THE TASK MANAGER'S TASK ARRAY
+unsigned int inline get_pid(task_manager* manager, unsigned int index)
+{
+    return manager->tasks[index]->pid;
+}
+
 //CLEARS TASK MANAGER'S TASK ARRAY
 void clear_manager(task_manager* manager)
 {
@@ -99,3 +142,23 @@ void clear_manager(task_manager* manager)
     }
 }
 
+/**
+//void scheduler(task_manager* manager, regs* extended_stack_pointer)
+//{
+    //regs* esp = extended_stack_pointer;
+
+    //if (manager->current_task <= 0)
+    //{
+        //__asm__ __volatile("movl %%esp, %%eax;"
+                           //"movl %0, esp;"
+                           //:"=r"(esp)
+                            //);
+
+    //}
+
+    if (manager->tasks[current_task]->
+
+    
+void scheduling_handler(struct regs* r)
+{
+*/

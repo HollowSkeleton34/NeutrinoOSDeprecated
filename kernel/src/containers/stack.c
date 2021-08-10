@@ -9,7 +9,7 @@ stack* stack_create(unsigned int size)
 
     s->top = 0;
     s->size = size;
-    s->arr = (unsigned int*)malloc(s->size * sizeof(stack));
+    s->arr = (unsigned int*)malloc(s->size * sizeof(unsigned int));
     return s;
 }
 
@@ -29,7 +29,7 @@ void stack_push(stack* s, int val)
 
     if (stack_full(s))
     {
-	printf("Could not push value to stack.\n");
+	    printf("Could not push value to stack.\n");
     }
     else
     {
