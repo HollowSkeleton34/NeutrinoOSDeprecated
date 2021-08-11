@@ -1,4 +1,4 @@
-#include <system/multi-threading.h>
+#include <system/multithreading.h>
 #include <system/memory.h>
 #include <stdio.h>
 #include <stdbool.h>
@@ -21,7 +21,7 @@ task_manager* create_task_manager()
 }
 
 //CREATES A STACK SPECIFICALLY FOR A TASK
-inline stack* create_task_stack()
+stack* create_task_stack()
 {
     return stack_create(4096);
 }
@@ -51,13 +51,13 @@ task* task_create(unsigned int* ins, unsigned int pid, unsigned char priority, v
 }
 
 //CHECKS IF THE TASK MANAGER'S TASK ARRAY IS FULL
-bool inline manager_full(task_manager* manager)
+bool manager_full(task_manager* manager)
 {
     return manager->num_tasks == 256;
 }
 
 //CHECKS IF TASK MANAGER'S TASK ARRAY IS EMPTY
-bool inline manager_empty(task_manager* manager)
+bool manager_empty(task_manager* manager)
 {
     return manager->num_tasks == 0;
 }
@@ -143,18 +143,18 @@ void clear_manager(task_manager* manager)
 }
 
 /**
-//void scheduler(task_manager* manager, regs* extended_stack_pointer)
-//{
-    //regs* esp = extended_stack_pointer;
+void scheduler(task_manager* manager, regs* extended_stack_pointer)
+{
+    regs* esp = extended_stack_pointer;
 
-    //if (manager->current_task <= 0)
-    //{
-        //__asm__ __volatile("movl %%esp, %%eax;"
+    if (manager->current_task <= 0)
+    {
+        __asm__ __volatile("movl %%esp, %%eax;"
                            //"movl %0, esp;"
                            //:"=r"(esp)
                             //);
 
-    //}
+    }
 
     if (manager->tasks[current_task]->
 

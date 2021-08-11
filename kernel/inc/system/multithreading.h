@@ -1,5 +1,5 @@
-#ifndef __MULTI-THREADING__
-#define __MULTI-THREADING__
+#ifndef __MULTITHREADING__
+#define __MULTITHREADING__
 
 #include <containers/stack.h>
 
@@ -31,10 +31,10 @@ typedef struct task_manager
     unsigned int current_task;
 } task_manager;
 
-inline stack* create_task_stack();
+stack* create_task_stack();
 task* task_create(unsigned int* ins, unsigned int pid, unsigned char priority, void function_ptr());
-bool inline manager_full(task_manager* manager);
-bool inline manager_empty(task_manager* manager);
+bool manager_full(task_manager* manager);
+bool manager_empty(task_manager* manager);
 void add_task_to_manager(task_manager* manager, task* t);
 void remove_task_from_manager(task_manager* manager, unsigned int pid);
 task* get_task(task_manager* manager, unsigned int pid);

@@ -13,12 +13,12 @@ stack* stack_create(unsigned int size)
     return s;
 }
 
-bool inline stack_full(stack* s)
+bool stack_full(stack* s)
 {
     return s->top == s->size - 1;
 }
 
-bool inline stack_empty(stack* s)
+bool stack_empty(stack* s)
 {
     return s->top == 0;
 }

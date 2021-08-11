@@ -11,8 +11,8 @@ typedef struct stack
 } stack;
 
 stack* stack_create(unsigned int size);
-bool inline stack_full(stack* s);
-bool inline stack_empty(stack* s);
+bool stack_full(stack* s);
+bool stack_empty(stack* s);
 unsigned int inline top(stack* s);
 void stack_push(stack* s, int val);
 void stack_pop(stack* s);
