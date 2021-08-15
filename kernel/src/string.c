@@ -34,6 +34,16 @@ void *memset(void *dest, char val, size_t count)
     return dest;
 }
 
+void* smemset(void* dest, void* value, size_t count, size_t size)
+{
+    char *temp1 = (char *)dest;
+    char *temp2 = (char *)value;
+    for(; count != 0; count --)
+        for(size_t tempsize = 0; tempsize != size; tempsize ++)
+            *temp1++ = temp2[tempsize];
+    return dest;
+}
+
 size_t strlen(const char *str)
 {
     size_t retval;

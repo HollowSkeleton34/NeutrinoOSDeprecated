@@ -4,16 +4,13 @@ global __default_drive
 __default_drive: db 0
 
 global __num_sectors
-__num_sectors: dd 84
+__num_sectors: dd 86
 
 bits 16
 global boot
 boot:
 	mov ax, 0x2401
 	int 0x15
-
-	mov ax, 0x3
-	int 0x10
 
 .load_kernel:
 	mov [__default_drive],dl
@@ -26,6 +23,21 @@ boot:
 	mov dl, [__default_drive] ;disk idx
 	mov bx, target ;target pointer
 	int 0x13
+    
+.setup_vesa:
+	mov ax, 0x4F00
+	mov di, __vbeInfoBlock
+	int 0x10
+
+	mov ax, 0x4F01
+	mov cx, 0x011B
+	mov di, __vbeModeBlock
+	int 0x10
+
+	mov ax, 0x4F02
+	mov bx, 0x011B        
+	mov di, __vbeCrtcBlock
+	int 0x10
 
 .read_drives:
 	mov eax, 0
@@ -110,6 +122,7 @@ boot:
 	mov fs, ax
 	mov gs, ax
 	mov ss, ax
+
 	jmp CODE_SEG:stage2
 
 
@@ -167,8 +180,21 @@ global __drive_data
 __drive_data:
 	times 12 * 16 db 0
 
+global __vbeInfoBlock
+__vbeInfoBlock:
+    times 516 db 0
+global __vbeModeBlock
+__vbeModeBlock:
+    times 256 db 0
+global __vbeCrtcBlock
+__vbeCrtcBlock:
+    times 64 db 0
+global __biosFontBitmap
+__biosFontBitmap:
+    dd 0
+
 section .bss
 align 4
 kernel_stack_bottom: equ $
-	resb 16384 ; 16 KB
+	resb 65536 ; 16 KB
 kernel_stack_top:

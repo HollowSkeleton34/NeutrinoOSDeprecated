@@ -11,7 +11,8 @@
 #define KERNEL_SNAPSHOT 1
 
 int main(){
-	vga_init_video();
+	//vga_init_video();
+    vga_init();
     memory_init();
 
     printf("Entered Kernel\n");
@@ -19,6 +20,7 @@ int main(){
 	idt_install();
     isrs_install();
     irq_install();
+
 
 	//timer_install();
     keyboard_install();

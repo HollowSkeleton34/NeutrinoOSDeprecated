@@ -137,7 +137,7 @@ char *exception_messages[] =
 *  serviced as a 'locking' mechanism to prevent an IRQ from
 *  happening and messing up kernel data structures */
 void fault_handler(struct regs *r){
-	vga_settextcolor(COLOR_WHITE, COLOR_RED);
+	//vga_settextcolor(COLOR_WHITE, COLOR_RED);
     puts("\rReceived Interrupt: ");
 
     const char *message = exception_messages[r->int_no];
