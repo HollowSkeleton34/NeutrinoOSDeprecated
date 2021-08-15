@@ -1,6 +1,7 @@
 #include <drivers/vga.h>
 #include <stdint.h>
 #include <string.h>
+#include <stdio.h>
 
 typedef struct _vbe_info_block 
 {
@@ -67,7 +68,7 @@ extern crtc_info_block __vbeCrtcBlock;
 static uint8_t* __vesaFramebuffer = 0xFD000000;
 static uint32_t __vesaWidth, __vesaHeight, __vesaBPP;
 
-static uint32_t fg = 0xFFFFFF, bg = 0x000000;
+static uint32_t fg = 0xFFFFFFFF, bg = 0x00000000;
 
 // Contains an 8x8 font map for unicode points U+0000 - U+007F (basic latin)
 char font_bitmap[128][8] = {
@@ -201,11 +202,17 @@ char font_bitmap[128][8] = {
     { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00}    // U+007F
 };
 
+static uint8_t vga_lerp(uint8_t a, uint8_t b, float v)
+{
+    return a + (int)(v * (b - a));
+}
+
 static void vga_putpixel(int x, int y, uint32_t color) {
     unsigned where = (x + y * __vesaWidth) * __vesaBPP;
-    __vesaFramebuffer[where] = color & 255;              // BLUE
-    __vesaFramebuffer[where + 1] = (color >> 8) & 255;   // GREEN
-    __vesaFramebuffer[where + 2] = (color >> 16) & 255;  // RED
+    float a = ((color >> 24) & 255) / 255.0f;
+    __vesaFramebuffer[where] = vga_lerp(__vesaFramebuffer[where], color & 255, a);
+    __vesaFramebuffer[where + 1] = vga_lerp(__vesaFramebuffer[where], (color >> 8) & 255, a);
+    __vesaFramebuffer[where + 2] = vga_lerp(__vesaFramebuffer[where], (color >> 16) & 255, a);
 }
 
 void vga_drawchar(uint8_t c, uint32_t x, uint32_t y)
@@ -292,6 +299,27 @@ static void vga_clearscreen()
     {
         *temp = 0;
         temp ++;
+    }
+}
+
+void vga_fillrect(uint32_t x, uint32_t y, uint32_t w, uint32_t h, uint32_t c)
+{
+    uint32_t where = x * __vesaBPP + y * __vesaWidth * __vesaBPP;
+    uint8_t b = c & 255;
+    uint8_t g = (c >> 8) & 255;
+    uint8_t r = (c >> 16) & 255;
+    float a = (c >> 24) & 255;
+
+    for(int yy = 0; yy < h; yy ++)
+    {
+        for(int xx = 0; xx < w; xx ++)
+        {
+            __vesaFramebuffer[where] = vga_lerp(__vesaFramebuffer[where], b, a);
+            __vesaFramebuffer[where + 1] = vga_lerp(__vesaFramebuffer[where], g, a);
+            __vesaFramebuffer[where + 2] = vga_lerp(__vesaFramebuffer[where], r, a);
+            where += __vesaBPP;
+        }
+        where += __vesaWidth * __vesaBPP - w * __vesaBPP;
     }
 }
 
