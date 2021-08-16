@@ -9,8 +9,6 @@
 #include <system/sys_kern.h>
 #include <containers/stack.h>
 
-struct regs* esp;
-
 task_manager* create_task_manager()
 {
     task_manager* tm;
@@ -26,27 +24,16 @@ stack* create_task_stack()
     return stack_create(4096);
 }
 
-task* task_create(unsigned int* ins, unsigned int pid, unsigned char priority, void function_ptr())
+task* task_create(unsigned int pid, unsigned char priority, void *function_ptr)
 {
     task* t;
 
-    t->curr_ins = ins;
+    t->curr_ins = (unsigned int*)function_ptr;
     t->pid = pid;
     t->priority = priority;
     t->state = NEW;
     t->task_stack = create_task_stack();
-    
-    //t->(&stack_regs) = (unsigned int)(t->task_stack + 4096 - sizeof(unsigned int));
-    
-    t->stack_regs->eax = 0;
-    t->stack_regs->ebx = 0;
-    t->stack_regs->ecx = 0;
-    t->stack_regs->edx = 0;
-    t->stack_regs->esi = 0;
-    t->stack_regs->edi = 0;
-    t->stack_regs->eip = (unsigned int)function_ptr;
-    t->stack_regs->cs = 0x08;
-    t->stack_regs->eflags = 0x202;
+
     return t;
 }
 
@@ -72,12 +59,12 @@ void add_task_to_manager(task_manager* manager, task* t)
     else
     {
         unsigned int i;
-    
+
         while (manager->tasks[i] != 0)
         {
             i++;
         }
-    
+
         manager->tasks[i] = t;
         manager->num_tasks++;
         manager->current_task = manager->tasks[i]->pid;
@@ -91,7 +78,7 @@ void add_task_to_manager(task_manager* manager, task* t)
 void remove_task_from_manager(task_manager* manager, unsigned int pid)
 {
     unsigned int rm = task_manager_binary_search(manager, 0, manager->num_tasks, pid);
-    
+
     if (rm == 0xFF)
     {
         printf("Task with PID %u could not be found in task manager\n", pid);
@@ -131,7 +118,7 @@ void clear_manager(task_manager* manager)
         printf("Manager is already empty\n");
     }
     else
-    {   
+    {
         for (int i = 0; i < 256; ++i)
         {
             manager->tasks[i] = NULL;
@@ -142,23 +129,47 @@ void clear_manager(task_manager* manager)
     }
 }
 
-/**
-void scheduler(task_manager* manager, regs* extended_stack_pointer)
+void scheduler(task_manager* manager)
 {
-    regs* esp = extended_stack_pointer;
-
-    if (manager->current_task <= 0)
+    if (manager->num_tasks <= 0)
     {
-        __asm__ __volatile("movl %%esp, %%eax;"
-                           //"movl %0, esp;"
-                           //:"=r"(esp)
-                            //);
+        printf("No tasks in task manager\n");
+        return;
+    }
+    else if (manager->current_task >= 0)
+    {
+        unsigned int location = (unsigned int)(manager->tasks[manager->current_task]->task_stack->arr);
+        __asm__ __volatile__("movl %%esp, %%eax;"
+                           "movl %0, %%esp;"
+                           :"=r"(location)
+                            );
 
+        if (manager->current_task == 0)
+        {
+            manager->tasks[manager->current_task]->state = RUNNING;
+        }
+        else
+        {
+            manager->tasks[manager->current_task - 1]->state = WAITING;
+            manager->tasks[manager->current_task]->state = RUNNING;
+        }
+    }
+    
+    if (++manager->current_task >= manager->num_tasks)
+    {
+        manager->current_task %= manager->num_tasks;
+        manager->tasks[manager->num_tasks]->state = WAITING;    
     }
 
-    if (manager->tasks[current_task]->
+    do_jmp();
+}
 
-    
-void scheduling_handler(struct regs* r)
+void scheduler_handler(struct regs *r)
 {
-*/
+    scheduler(system_task_manager);
+}
+
+void scheduler_install()
+{
+    irq_install_handler(9, scheduler_handler);
+}
