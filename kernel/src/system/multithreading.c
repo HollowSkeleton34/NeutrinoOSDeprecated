@@ -11,9 +11,7 @@
 
 task_manager* create_task_manager()
 {
-    task_manager* tm;
-
-    tm = malloc(sizeof(task_manager));
+    task_manager* tm = malloc(sizeof(task_manager));
     tm->num_tasks = 0;
     tm->current_task = 0xFF;
     return tm;
@@ -27,9 +25,7 @@ stack* create_task_stack()
 
 task* task_create(unsigned int pid, unsigned char priority, void *function_ptr)
 {
-    task* t;
-    
-    t = malloc(sizeof(task));
+    task* t = malloc(sizeof(task));
 
     t->curr_ins = (unsigned int*)function_ptr;
     t->pid = pid;
