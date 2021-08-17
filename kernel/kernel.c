@@ -8,8 +8,8 @@
 #include <system/multithreading.h>
 
 #define KERNEL_RELEASE  0
-#define KERNEL_VERSION  2
-#define KERNEL_COMMIT   8
+#define KERNEL_VERSION  3
+#define KERNEL_COMMIT   4
 
 int main()
 {
@@ -37,7 +37,7 @@ int main()
     {
         printf("Test scroll: %u\n", i);
     }
-    
+
     vga_fillrect(640, 512, 640, 512, 0x7FFF0000);
     //system_task_manager = create_task_manager();
     //scheduler_install();
