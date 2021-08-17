@@ -70,7 +70,10 @@ static uint32_t __vesaWidth, __vesaHeight, __vesaBPP;
 
 static uint32_t fg = 0xFFFFFFFF, bg = 0x00000000;
 
-// Contains an 8x8 font map for unicode points U+0000 - U+007F (basic latin)
+static uint32_t csr_x = 0, csr_y = 0;
+static uint32_t textmemptr = 0;
+
+// Contains an 8x8 font map for ascii characters 0-127
 char font_bitmap[128][8] = {
     { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00},   // U+0000 (nul)
     { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00},   // U+0001
@@ -202,7 +205,7 @@ char font_bitmap[128][8] = {
     { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00}    // U+007F
 };
 
-static uint8_t vga_lerp(uint8_t a, uint8_t b, float v)
+inline static uint8_t vga_lerp(uint8_t a, uint8_t b, float v)
 {
     return a + (int)(v * (b - a));
 }
@@ -213,6 +216,37 @@ static void vga_putpixel(int x, int y, uint32_t color) {
     __vesaFramebuffer[where] = vga_lerp(__vesaFramebuffer[where], color & 255, a);
     __vesaFramebuffer[where + 1] = vga_lerp(__vesaFramebuffer[where], (color >> 8) & 255, a);
     __vesaFramebuffer[where + 2] = vga_lerp(__vesaFramebuffer[where], (color >> 16) & 255, a);
+}
+
+/**
+ * @brief Scrolls text, WARNING WILL SCROLL ALL PIXELS REGARDLESS OF IF THEY'RE TEXT
+ * 
+ */
+static void vga_scroll()
+{
+    if(csr_y < __vesaHeight / 9)
+    {
+        return;
+    }
+    csr_y --;
+
+    uint32_t offset = __vesaWidth * __vesaBPP * 9;
+    uint32_t length = __vesaWidth * __vesaHeight * __vesaBPP - offset;
+    uint32_t end = __vesaWidth * __vesaHeight * __vesaBPP;
+
+    for(int i = 0; i < length; i += __vesaBPP)
+    {
+        __vesaFramebuffer[i] = __vesaFramebuffer[i + offset];
+        __vesaFramebuffer[i + 1] = __vesaFramebuffer[i + offset + 1];
+        __vesaFramebuffer[i + 2] = __vesaFramebuffer[i + offset + 2];
+    }
+
+    for(int i = length; i < end; i += 3)
+    {
+        __vesaFramebuffer[i] = 0;
+        __vesaFramebuffer[i + 1] = 0;
+        __vesaFramebuffer[i + 2] = 0;
+    }
 }
 
 void vga_drawchar(uint8_t c, uint32_t x, uint32_t y)
@@ -237,9 +271,6 @@ void vga_drawchar(uint8_t c, uint32_t x, uint32_t y)
         j = x;
     }
 }
-
-uint32_t csr_x = 0, csr_y = 0;
-uint32_t textmemptr = 0;
 
 void vga_putc(char c)
 {
@@ -289,6 +320,9 @@ void vga_putc(char c)
         csr_x = 0;
         csr_y++;
     }
+    
+    /* Scroll the screen if needed, and finally move the cursor */
+    vga_scroll();
 }
 
 static void vga_clearscreen()
@@ -308,7 +342,9 @@ void vga_fillrect(uint32_t x, uint32_t y, uint32_t w, uint32_t h, uint32_t c)
     uint8_t b = c & 255;
     uint8_t g = (c >> 8) & 255;
     uint8_t r = (c >> 16) & 255;
-    float a = (c >> 24) & 255;
+    float a = ((c >> 24) & 255) / 255.0f;
+    uint32_t vertical_step = __vesaWidth * __vesaBPP - w * __vesaBPP;
+    
 
     for(int yy = 0; yy < h; yy ++)
     {
@@ -318,6 +354,27 @@ void vga_fillrect(uint32_t x, uint32_t y, uint32_t w, uint32_t h, uint32_t c)
             __vesaFramebuffer[where + 1] = vga_lerp(__vesaFramebuffer[where], g, a);
             __vesaFramebuffer[where + 2] = vga_lerp(__vesaFramebuffer[where], r, a);
             where += __vesaBPP;
+        }
+        where += vertical_step;
+    }
+}
+
+void vga_fillicon(uint32_t x, uint32_t y, uint32_t w, uint32_t h, uint32_t *icon)
+{
+    uint32_t where = x * __vesaBPP + y * __vesaWidth * __vesaBPP;
+    uint32_t *color = icon;
+    float a;
+
+    for(int yy = 0; yy < h; yy ++)
+    {
+        for(int xx = 0; xx < w; xx ++)
+        {
+            a = ((*color >> 24) & 255) / 255.0f;
+            __vesaFramebuffer[where] = vga_lerp(__vesaFramebuffer[where], *color & 255, a);
+            __vesaFramebuffer[where + 1] = vga_lerp(__vesaFramebuffer[where], (*color >> 8) & 255, a);
+            __vesaFramebuffer[where + 2] = vga_lerp(__vesaFramebuffer[where], (*color >> 16) & 255, a);
+            where += __vesaBPP;
+            color += 4;
         }
         where += __vesaWidth * __vesaBPP - w * __vesaBPP;
     }

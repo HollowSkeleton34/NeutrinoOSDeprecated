@@ -10,7 +10,8 @@
 #define KERNEL_VERSION  2
 #define KERNEL_COMMIT   8
 
-int main(){
+int main()
+{
 	//vga_init_video();
     vga_init();
     memory_init();
@@ -28,7 +29,13 @@ int main(){
 	
 	printf("Running NeutrinoOS Version %d.%d.%d!\n", KERNEL_RELEASE, KERNEL_VERSION, KERNEL_COMMIT);
 
-    vga_fillrect(640, 512, 640, 512, 0x7FFF0000);
+    vga_fillrect(640, 512, 640, 512, 0xFFFF0000);
+    vga_fillrect(640, 512, 640, 512, 0x7F0000FF);
+
+    for(int i = 0; i < 200; i ++)
+    {
+        printf("Test scroll: %u\n", i);
+    }
 
     __asm__ __volatile__ ("sti");
 
