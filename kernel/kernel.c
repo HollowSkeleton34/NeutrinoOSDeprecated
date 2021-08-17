@@ -5,6 +5,7 @@
 #include <drivers/ata.h>
 #include <system/sys_kern.h>
 #include <system/memory.h>
+#include <system/multithreading.h>
 
 #define KERNEL_RELEASE  0
 #define KERNEL_VERSION  2
@@ -36,6 +37,10 @@ int main()
     {
         printf("Test scroll: %u\n", i);
     }
+    
+    vga_fillrect(640, 512, 640, 512, 0x7FFF0000);
+    //system_task_manager = create_task_manager();
+    //scheduler_install();
 
     __asm__ __volatile__ ("sti");
 
