@@ -46,5 +46,7 @@ task* get_task(task_manager* manager, unsigned int pid);
 unsigned int inline get_pid(task_manager* manager, unsigned int index);
 void clear_manager(task_manager* manager);
 extern void do_jmp();
+extern void pushy();
+extern void poppy();
 
 #endif

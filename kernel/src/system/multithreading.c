@@ -142,6 +142,8 @@ void scheduler(task_manager* manager)
                            "movl %0, %%esp;"
                            :"=r"(location)
                             );
+	do_jmp();
+        pushy();
 
         if (manager->current_task == 0)
         {
@@ -153,14 +155,12 @@ void scheduler(task_manager* manager)
             manager->tasks[manager->current_task]->state = RUNNING;
         }
     }
-    
+
     if (++manager->current_task >= manager->num_tasks)
     {
         manager->current_task %= manager->num_tasks;
-        manager->tasks[manager->num_tasks]->state = WAITING;    
+        manager->tasks[manager->num_tasks]->state = WAITING;
     }
-
-    do_jmp();
 }
 
 void scheduler_handler(struct regs *r)

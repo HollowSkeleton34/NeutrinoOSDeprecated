@@ -10,9 +10,9 @@ SRC = $(shell find . -type f -name "*.c")
 ASM_SRC = $(shell find . -type f -name "*.asm")
 
 # CRITICAL: assembly must be linked first
-OBJ = ${ASM_SRC:.asm=.o} ${SRC:.c=.o} 
+OBJ = ${ASM_SRC:.asm=.o} ${SRC:.c=.o}
 
-CCFLAGS = -nostdinc -ggdb -c -ffreestanding -target i386-none-elf
+CCFLAGS = -nostdinc -ggdb -c -ffreestanding -fno-omit-frame-pointer -target i386-none-elf
 LDFLAGS = -T link.ld -m elf_i386
 LDFLAGS_BIN = ${LDFLAGS} --oformat binary
 ASFLAGS = -f elf32
