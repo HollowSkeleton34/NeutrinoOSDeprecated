@@ -207,15 +207,15 @@ char font_bitmap[128][8] = {
 
 inline static uint8_t vga_lerp(uint8_t a, uint8_t b, float v)
 {
-    return a + (int)(v * (b - a));
+    return (uint8_t)(a + (v * (b - a)));
 }
 
 static void vga_putpixel(int x, int y, uint32_t color) {
     unsigned where = (x + y * __vesaWidth) * __vesaBPP;
-    float a = ((color >> 24) & 255) / 255.0f;
+    float a = (float)((color >> 24) & 255) / 255.0f;
     __vesaFramebuffer[where] = vga_lerp(__vesaFramebuffer[where], color & 255, a);
-    __vesaFramebuffer[where + 1] = vga_lerp(__vesaFramebuffer[where], (color >> 8) & 255, a);
-    __vesaFramebuffer[where + 2] = vga_lerp(__vesaFramebuffer[where], (color >> 16) & 255, a);
+    __vesaFramebuffer[where + 1] = vga_lerp(__vesaFramebuffer[where + 1], (color >> 8) & 255, a);
+    __vesaFramebuffer[where + 2] = vga_lerp(__vesaFramebuffer[where + 2], (color >> 16) & 255, a);
 }
 
 /**
@@ -351,8 +351,8 @@ void vga_fillrect(uint32_t x, uint32_t y, uint32_t w, uint32_t h, uint32_t c)
         for(int xx = 0; xx < w; xx ++)
         {
             __vesaFramebuffer[where] = vga_lerp(__vesaFramebuffer[where], b, a);
-            __vesaFramebuffer[where + 1] = vga_lerp(__vesaFramebuffer[where], g, a);
-            __vesaFramebuffer[where + 2] = vga_lerp(__vesaFramebuffer[where], r, a);
+            __vesaFramebuffer[where + 1] = vga_lerp(__vesaFramebuffer[where + 1], g, a);
+            __vesaFramebuffer[where + 2] = vga_lerp(__vesaFramebuffer[where + 2], r, a);
             where += __vesaBPP;
         }
         where += vertical_step;
@@ -374,7 +374,7 @@ void vga_fillicon(uint32_t x, uint32_t y, uint32_t w, uint32_t h, uint32_t *icon
             __vesaFramebuffer[where + 1] = vga_lerp(__vesaFramebuffer[where], (*color >> 8) & 255, a);
             __vesaFramebuffer[where + 2] = vga_lerp(__vesaFramebuffer[where], (*color >> 16) & 255, a);
             where += __vesaBPP;
-            color += 4;
+            color ++;
         }
         where += __vesaWidth * __vesaBPP - w * __vesaBPP;
     }
