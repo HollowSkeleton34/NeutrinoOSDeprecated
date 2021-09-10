@@ -23,7 +23,7 @@ stack* create_task_stack()
     return stack_create(4096);
 }
 
-task* task_create(unsigned int pid, unsigned char priority, void *function_ptr)
+task* task_create(unsigned int pid, unsigned int priority, void *function_ptr)
 {
     task* t = malloc(sizeof(task));
 
@@ -109,6 +109,23 @@ unsigned int inline get_pid(task_manager* manager, unsigned int index)
     return manager->tasks[index]->pid;
 }
 
+unsigned int get_state(task* t)
+{
+    switch (t->state)
+    {
+	    case NEW : return 0x00;
+	    case READY : return 0x01;
+	    case RUNNING : return 0x02;
+	    case WAITING : return 0x03;
+        default : return 0xFF;
+    }
+}
+
+unsigned int inline get_priority(task* t)
+{
+    return t->priority;
+}
+
 //CLEARS TASK MANAGER'S TASK ARRAY
 void clear_manager(task_manager* manager)
 {
@@ -127,6 +144,7 @@ void clear_manager(task_manager* manager)
         manager->current_task = 0;
     }
 }
+
 
 void scheduler(task_manager* manager)
 {
