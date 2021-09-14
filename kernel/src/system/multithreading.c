@@ -148,6 +148,8 @@ void clear_manager(task_manager* manager)
 
 void scheduler(task_manager* manager)
 {
+    printf("Entering scheduler\n");
+
     if (manager->num_tasks <= 0)
     {
         printf("No tasks in task manager\n");
@@ -155,7 +157,7 @@ void scheduler(task_manager* manager)
     }
     else if (manager->current_task >= 0)
     {
-        unsigned int location = (unsigned int)(manager->tasks[manager->current_task]->task_stack->arr);
+        unsigned int* location = (unsigned int*)(manager->tasks[manager->current_task]->task_stack->arr);
         __asm__ __volatile__("movl %%esp, %%eax;"
                            "movl %0, %%esp;"
                            :"=r"(location)
@@ -188,5 +190,6 @@ void scheduler_handler(struct regs *r)
 
 void scheduler_install()
 {
-    irq_install_handler(9, scheduler_handler);
+    irq_install_handler(2, scheduler_handler);
+    printf("CPU task scheduler installed successfully!\n");
 }

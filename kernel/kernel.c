@@ -6,6 +6,7 @@
 #include <system/sys_kern.h>
 #include <system/memory.h>
 #include <system/multithreading.h>
+#include <system/tests.h>
 
 #define KERNEL_RELEASE  0
 #define KERNEL_VERSION  3
@@ -26,21 +27,29 @@ int main()
 
 	//timer_install();
     keyboard_install();
-    ata_install();
-	
-	printf("Running NeutrinoOS Version %d.%d.%d!\n", KERNEL_RELEASE, KERNEL_VERSION, KERNEL_COMMIT);
+    system_task_manager = create_task_manager();
 
-    vga_fillrect(640, 512, 640, 512, 0xFFFF0000);
-    vga_fillrect(640, 512, 640, 512, 0x7F0000FF);
-
-    for(int i = 0; i < 200; i ++)
+    if (system_task_manager)
     {
-        printf("Test scroll: %u\n", i);
+        printf("Task manager installed successfully!\n");
     }
 
-    vga_fillrect(640, 512, 640, 512, 0x7FFF0000);
-    //system_task_manager = create_task_manager();
-    //scheduler_install();
+    scheduler_install();
+    ata_install();
+
+    printf("Running NeutrinoOS Version %d.%d.%d!\n", KERNEL_RELEASE, KERNEL_VERSION, KERNEL_COMMIT);
+
+    //vga_fillrect(640, 512, 640, 512, 0xFFFF0000);
+    //vga_fillrect(640, 512, 640, 512, 0x7F0000FF);
+
+    //for(int i = 0; i < 200; i ++)
+    //{
+        //printf("Test scroll: %u\n", i);
+    //}
+
+    //vga_fillrect(640, 512, 640, 512, 0x7FFF0000);
+    add_tests(system_task_manager);
+
 
     __asm__ __volatile__ ("sti");
 

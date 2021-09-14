@@ -32,6 +32,15 @@ void *irq_routines[16] =
 void irq_install_handler(int irq, void (*handler)(struct regs *r))
 {
     irq_routines[irq] = handler;
+
+    if (irq_routines[irq])
+    {
+    	printf("Handler at position %i has been installed\n", irq);
+    }
+    else
+    {
+	printf("Handler at position %i failed to install\n", irq);
+    }
 }
 
 /* This clears the handler for a given IRQ */
