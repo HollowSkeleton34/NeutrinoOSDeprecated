@@ -1,21 +1,22 @@
 #include <system/multithreading.h>
+#include <stdio.h>
 
 void print_test_a()
 {
-    for (int i = 0; i < 50; ++i)
-    {
-        printf("A");
-    }
+    int i = 0;
+    i += 5;
+    i += i;
+    printf("%d", i);
 
     printf("\n");
 }
 
 void print_test_b()
 {
-    for (int i = 0; i < 50; ++i)
-    {
-	printf("B");
-    }
+    int i = 0;
+    i += 10;
+    i += i;
+    printf("%d", i);
 
     printf("\n");
 }

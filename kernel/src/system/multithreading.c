@@ -23,11 +23,11 @@ stack* create_task_stack()
     return stack_create(4096);
 }
 
-task* task_create(unsigned int pid, unsigned int priority, void *function_ptr)
+task* task_create(unsigned int pid, unsigned int priority, void (*function_ptr)())
 {
     task* t = malloc(sizeof(task));
 
-    t->curr_ins = (unsigned int*)function_ptr;
+    t->curr_ins = function_ptr;
     t->pid = pid;
     t->priority = priority;
     t->state = NEW;
@@ -157,13 +157,18 @@ void scheduler(task_manager* manager)
     }
     else if (manager->current_task >= 0)
     {
+        /*
         unsigned int* location = (unsigned int*)(manager->tasks[manager->current_task]->task_stack->arr);
-        __asm__ __volatile__("movl %%esp, %%eax;"
+        __asm__ __volatile__(
+                            "mov +8(%%esp), %%ecx;"
+                            "movl %%esp, %%eax;"
                            "movl %0, %%esp;"
                            :"=r"(location)
                             );
-	do_jmp();
+	    do_jmp();
         pushy();
+        */
+       manager->tasks[manager->current_task]->curr_ins();
 
         if (manager->current_task == 0)
         {
@@ -190,6 +195,6 @@ void scheduler_handler(struct regs *r)
 
 void scheduler_install()
 {
-    irq_install_handler(2, scheduler_handler);
+    //irq_install_handler(13, scheduler_handler);
     printf("CPU task scheduler installed successfully!\n");
 }

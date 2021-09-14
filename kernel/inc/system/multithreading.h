@@ -15,7 +15,7 @@ enum status
 //STRUCTURE FOR PROCESSES
 typedef struct task
 {
-    unsigned int* curr_ins;
+    void (*curr_ins)();
     unsigned int pid;
     enum status state;
     unsigned int priority;
@@ -37,7 +37,7 @@ task_manager* system_task_manager;
 //FUNCTIONS
 task_manager* create_task_manager();
 stack* create_task_stack();
-task* task_create(unsigned int pid, unsigned int priority, void *function_ptr);
+task* task_create(unsigned int pid, unsigned int priority, void (*function_ptr)());
 bool manager_full(task_manager* manager);
 bool manager_empty(task_manager* manager);
 void add_task_to_manager(task_manager* manager, task* t);

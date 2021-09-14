@@ -34,7 +34,7 @@ int main()
         printf("Task manager installed successfully!\n");
     }
 
-    scheduler_install();
+    //scheduler_install();
     ata_install();
 
     printf("Running NeutrinoOS Version %d.%d.%d!\n", KERNEL_RELEASE, KERNEL_VERSION, KERNEL_COMMIT);
@@ -50,8 +50,12 @@ int main()
     //vga_fillrect(640, 512, 640, 512, 0x7FFF0000);
     add_tests(system_task_manager);
 
-
     __asm__ __volatile__ ("sti");
+
+    for(int i = 0; i < 10; i ++)
+    {
+        scheduler_handler(NULL);
+    }
 
     return 0;
 }
