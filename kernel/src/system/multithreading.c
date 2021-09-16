@@ -49,7 +49,7 @@ bool manager_empty(task_manager* manager)
 }
 
 //ADDS TASK TO TASK ARRAY OF MANAGER
-void add_task_to_manager(task_manager* manager, task* t)
+void add_task(task_manager* manager, task* t)
 {
     if (manager_full(manager))
     {
@@ -72,9 +72,14 @@ void add_task_to_manager(task_manager* manager, task* t)
     }
 }
 
+void remove_task(task_manager* manager, unsigned int index)
+{
+    manager->tasks[index] = NULL;
+}
+
 //REMOVES TASK FROM MANAGER
 //USES BINARY SEARCH TO FIND TASK
-void remove_task_from_manager(task_manager* manager, unsigned int pid)
+void remove_task_by_pid(task_manager* manager, unsigned int pid)
 {
     unsigned int rm = task_manager_binary_search(manager, 0, manager->num_tasks, pid);
 
@@ -145,30 +150,36 @@ void clear_manager(task_manager* manager)
     }
 }
 
+void kern_stack_switch()
+{
+    __asm__ __volatile__ ("movl %0, %%esp;" : "=r"(kernel_stack));
+}
+
+void set_kern_stack_ptr()
+{
+    __asm__ __volatile__ ("movl %%esp, %0;" : "=r"(kernel_stack));
+}
 
 void scheduler(task_manager* manager)
 {
     printf("Entering scheduler\n");
 
+    if (!stack_set)
+    {
+	    set_kern_stack_ptr();
+        stack_set = 1;
+    }
+
     if (manager->num_tasks <= 0)
     {
         printf("No tasks in task manager\n");
-        return;
+        kern_stack_switch();
+        stack_set = 0;
+	return;
     }
     else if (manager->current_task >= 0)
     {
-        /*
-        unsigned int* location = (unsigned int*)(manager->tasks[manager->current_task]->task_stack->arr);
-        __asm__ __volatile__(
-                            "mov +8(%%esp), %%ecx;"
-                            "movl %%esp, %%eax;"
-                           "movl %0, %%esp;"
-                           :"=r"(location)
-                            );
-	    do_jmp();
-        pushy();
-        */
-       manager->tasks[manager->current_task]->curr_ins();
+	    manager->tasks[manager->current_task]->curr_ins();
 
         if (manager->current_task == 0)
         {
@@ -180,6 +191,8 @@ void scheduler(task_manager* manager)
             manager->tasks[manager->current_task]->state = RUNNING;
         }
     }
+
+    remove_task(manager, manager->current_task);
 
     if (++manager->current_task >= manager->num_tasks)
     {

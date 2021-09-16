@@ -39,6 +39,9 @@ int main()
 
     printf("Running NeutrinoOS Version %d.%d.%d!\n", KERNEL_RELEASE, KERNEL_VERSION, KERNEL_COMMIT);
 
+    // This variable is for determining whether or not ESP's position has been saved before the task
+    // manager runs
+    stack_set = 0;
     //vga_fillrect(640, 512, 640, 512, 0xFFFF0000);
     //vga_fillrect(640, 512, 640, 512, 0x7F0000FF);
 
