@@ -57,8 +57,5 @@ void set_kern_stack_ptr();
 void scheduler(task_manager* manager);
 void scheduler_handler(struct regs *r);
 void scheduler_install();
-extern void do_jmp();
-extern void pushy();
-extern void poppy();
 
 #endif
