@@ -10,7 +10,7 @@
 
 #define KERNEL_RELEASE  0
 #define KERNEL_VERSION  3
-#define KERNEL_COMMIT   4
+#define KERNEL_COMMIT   43
 
 int main()
 {
@@ -25,17 +25,12 @@ int main()
     irq_install();
 
 
-	//timer_install();
+	timer_install();
     keyboard_install();
-    system_task_manager = create_task_manager();
 
-    if (system_task_manager)
-    {
-        printf("Task manager installed successfully!\n");
-    }
-
-    //scheduler_install();
     ata_install();
+
+    system_task_manager = create_task_manager();
 
     printf("Running NeutrinoOS Version %d.%d.%d!\n", KERNEL_RELEASE, KERNEL_VERSION, KERNEL_COMMIT);
 
@@ -47,18 +42,13 @@ int main()
 
     //for(int i = 0; i < 200; i ++)
     //{
-        //printf("Test scroll: %u\n", i);
+       // printf("Test scroll: %u\n", i);
     //}
 
     //vga_fillrect(640, 512, 640, 512, 0x7FFF0000);
     add_tests(system_task_manager);
 
     __asm__ __volatile__ ("sti");
-
-    for(int i = 0; i < 10; i ++)
-    {
-        scheduler_handler(NULL);
-    }
 
     return 0;
 }

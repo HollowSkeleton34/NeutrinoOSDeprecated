@@ -3,6 +3,7 @@
 
 #include <stdio.h>
 #include <system/multithreading.h>
+#include <system/sys_kern.h>
 
 void print_test_a();
 void print_test_b();

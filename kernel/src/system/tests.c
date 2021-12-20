@@ -1,5 +1,4 @@
-#include <system/multithreading.h>
-#include <stdio.h>
+#include <system/tests.h>
 
 void print_test_a()
 {

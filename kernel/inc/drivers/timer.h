@@ -1,4 +1,3 @@
-
 #ifndef __DRIVER_TIMER
 #define __DRIVER_TIMER
 

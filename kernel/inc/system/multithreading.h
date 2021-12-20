@@ -5,6 +5,9 @@
 #include <system/sys_kern.h>
 #include <stdbool.h>
 
+//GLOBALS
+unsigned int rem_tasks;
+
 //ENUM FOR STATES OF PROCESS
 enum status
 {
@@ -55,7 +58,5 @@ void clear_manager(task_manager* manager);
 void kern_stack_switch();
 void set_kern_stack_ptr();
 void scheduler(task_manager* manager);
-void scheduler_handler(struct regs *r);
-void scheduler_install();
 
 #endif

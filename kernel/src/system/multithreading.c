@@ -69,6 +69,7 @@ void add_task(task_manager* manager, task* t)
         manager->current_task = manager->tasks[i]->pid;
         t->state = READY;
         printf("Task for instruction at location %p successfully created\n", t->curr_ins);
+        ++rem_tasks;
     }
 }
 
@@ -160,28 +161,57 @@ void set_kern_stack_ptr()
     __asm__ __volatile__ ("movl %%esp, %0;" : "=r"(kernel_stack));
 }
 
+int set_stack(unsigned int *address)
+{
+    if (address)
+    {
+	    __asm__ __volatile__("movl %0, %%esp;" : "=r"(address));
+	    return 0;
+    }
+    else
+    {
+	    printf("The address that was passed was invalid. Stack pointer has not been changed.\n");
+	    return 1;
+    }
+}
+
 void scheduler(task_manager* manager)
 {
     printf("Entering scheduler\n");
 
     if (!stack_set)
     {
-	    set_kern_stack_ptr();
+	    //set_kern_stack_ptr();
         stack_set = 1;
     }
 
     if (manager->num_tasks <= 0)
     {
         printf("No tasks in task manager\n");
-        kern_stack_switch();
-        stack_set = 0;
-	return;
+        //kern_stack_switch();
+        //stack_set = 0;
+	    return;
     }
-    else if (manager->current_task >= 0)
+    else
     {
-	    manager->tasks[manager->current_task]->curr_ins();
+	    //printf("Changing stack pointer to stack at %p for task %x...\n", manager->tasks[manager->current_task]->task_stack, manager->current_task);
+	    //unsigned int *p = manager->tasks[manager->current_task]->task_stack->arr;
+	    //int err_check = set_stack(p);
 
-        if (manager->current_task == 0)
+	    //if (err_check == 0)
+	    //{
+	        //printf("Stack pointer set succesfully\n");
+	    //}
+	    //else
+    	//{
+	        //printf("Stack pointer change failed\n");
+	        //return;
+	    //}
+
+	    manager->tasks[manager->current_task]->curr_ins();
+	    printf("Task has completed running\n");
+
+	    if (manager->current_task == 0)
         {
             manager->tasks[manager->current_task]->state = RUNNING;
         }
@@ -193,21 +223,13 @@ void scheduler(task_manager* manager)
     }
 
     remove_task(manager, manager->current_task);
+    --rem_tasks;
 
     if (++manager->current_task >= manager->num_tasks)
     {
         manager->current_task %= manager->num_tasks;
         manager->tasks[manager->num_tasks]->state = WAITING;
     }
-}
 
-void scheduler_handler(struct regs *r)
-{
-    scheduler(system_task_manager);
-}
-
-void scheduler_install()
-{
-    //irq_install_handler(13, scheduler_handler);
-    printf("CPU task scheduler installed successfully!\n");
+    printf("There are %i tasks left.\n", rem_tasks);
 }

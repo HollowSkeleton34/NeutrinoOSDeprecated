@@ -2,6 +2,7 @@
 #include <system/sys_kern.h>
 #include <system/system.h>
 #include <stdio.h>
+#include <system/multithreading.h>
 
 /* This will keep track of how many ticks that the system
 *  has been running for */
@@ -21,7 +22,10 @@ void timer_handler(struct regs *r)
     *  display a message on the screen */
     if (timer_ticks % 18 == 0)
     {
-        puts("One second has passed\n");
+        if (rem_tasks > 0)
+        {
+            scheduler(system_task_manager);
+        }
     }
 }
 
